@@ -1,0 +1,4 @@
+alert_id,asset_id,level,message,owner,age_minutes
+A-1042,edge-2,critical,Primary route unavailable and fallback path active,NOC,18
+A-1037,hub-west,major,Sustained utilization above policy threshold,Capacity,46
+A-1028,zone-2,minor,Telemetry freshness check missed one cycle,Data,72

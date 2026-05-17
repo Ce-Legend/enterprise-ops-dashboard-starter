@@ -2,67 +2,24 @@
 
 这份 demo 真正能拿走的是几条小模式。
 
-## 1. 场景协议
+## 1. Excel 表先变成数据合同
 
-场景不要只是一段文案。它至少要写清楚：
+页面需要什么，Excel 里就要能找到稳定来源。
 
-| 字段 | 作用 |
+| 输入表 | 页面用途 |
 |---|---|
-| `id` | 页面状态和接口参数 |
-| `name` | 下拉框展示 |
-| `description` | 当前场景解释 |
-| `impactedAssets` | 被影响资产，用来驱动图、告警和健康度 |
+| `assets.csv` | 节点、地图点、拓扑点 |
+| `links.csv` | 关系边、拓扑边、状态线 |
+| `services.csv` | 业务映射、路径追踪、影响分析 |
+| `alerts.csv` | 状态标记、告警列表、健康度规则 |
 
-```json
-{
-  "id": "edge-pressure",
-  "name": "Edge Pressure",
-  "description": "Highlights one edge asset, related alerts, and downstream services.",
-  "impactedAssets": ["edge-2", "hub-west", "zone-2"]
-}
-```
+真实项目里可以继续叫 `.xlsx`，但内部最好早一点转成这样的合同结构。
 
-这比散落在每个组件里的 if 判断更容易维护。
+## 2. 节点和边必须能互相校验
 
-## 2. 数据质量进入主流程
+拓扑图最怕关系断链：边表里写了一个 source，节点表里找不到它。页面可能还能渲染一部分，但数据可信度已经坏了。
 
-数据校验别只放在后台日志里。To B dashboard 里，数据质量会直接影响演示可信度。
-
-推荐把校验结果做成这样的结构：
-
-```json
-{
-  "source": "asset_inventory.csv",
-  "rows": 1280,
-  "matched": 1266,
-  "missing": 14,
-  "note": "14 rows need location mapping"
-}
-```
-
-然后把它用于：
-
-- 页面可见的校验列表。
-- 报表可信度。
-- 导出前提示。
-- 验收说明。
-
-## 3. 健康度不要写死
-
-健康分可以从几条容易解释的规则开始：
-
-| 规则 | 可解释口径 |
-|---|---|
-| Asset availability | 关键资产状态 |
-| Relationship confidence | 关系链路是否异常 |
-| Alert freshness | 活跃告警数量和等级 |
-| Report readiness | 数据校验覆盖率 |
-
-对应代码在 [src/opsPatterns.ts](../src/opsPatterns.ts)。
-
-## 4. 合同检查脚本
-
-演示数据也需要校验。这个 repo 里保留了一个很小的检查脚本：
+这个 repo 保留了一个小检查：
 
 ```bash
 npm run check:contract
@@ -75,4 +32,34 @@ npm run check:contract
 - validation 的 `missing` 是否等于 `rows - matched`。
 - scenario 里的影响资产是否存在。
 
-这个脚本很小，但能避免 demo 现场出现图能显示、告警却对不上资产的低级问题。
+## 3. 状态标记不要散落在组件里
+
+状态最好集中成几类来源：
+
+| 来源 | 用途 |
+|---|---|
+| `assets.status` | 节点颜色 |
+| `links.status` | 边颜色和线型 |
+| `alerts.level` | 告警列表排序 |
+| `validations` | 报表可信度 |
+
+这样 GIS 地图、逻辑拓扑、统计卡片和报表导出都能解释成同一套数据。
+
+## 4. 报表导出从数据库走
+
+前端表格导出适合临时看，正式交付最好从数据库生成报表。这个 demo 用：
+
+```bash
+npm run export:report
+```
+
+导出：
+
+```text
+summary.json
+status_by_region.csv
+topology_report.csv
+alert_report.csv
+```
+
+这几份文件能说明一个完整闭环：节点状态、关系拓扑、告警事件和统计口径来自同一套结构化数据。

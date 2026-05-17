@@ -1,0 +1,8 @@
+link_id,source_asset_id,target_asset_id,link_type,load,status
+L-001,hub-east,edge-1,primary,42,normal
+L-002,hub-east,zone-1,primary,64,normal
+L-003,hub-east,zone-2,backup,82,warning
+L-004,hub-west,edge-2,primary,91,critical
+L-005,hub-west,zone-2,backup,77,warning
+L-006,hub-west,zone-3,primary,48,normal
+L-007,edge-1,edge-2,peering,57,normal

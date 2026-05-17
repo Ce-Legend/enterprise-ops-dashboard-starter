@@ -1,0 +1,5 @@
+service_id,service_name,source_asset_id,target_asset_id,importance,status
+S-001,Order API,hub-east,zone-1,high,normal
+S-002,Billing Batch,hub-west,edge-2,critical,warning
+S-003,Partner Portal,edge-1,edge-2,medium,normal
+S-004,Data Sync,hub-east,zone-2,high,warning

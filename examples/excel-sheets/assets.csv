@@ -1,0 +1,8 @@
+asset_id,asset_name,asset_type,region,longitude,latitude,status,base_score
+hub-east,East Hub,Core,East,121.46,31.22,normal,92
+hub-west,West Hub,Core,West,120.17,30.26,warning,78
+edge-1,Edge A1,Edge,East,121.31,31.12,normal,88
+edge-2,Edge B2,Edge,West,120.05,30.19,critical,54
+zone-1,Zone 12,Access,East,121.52,31.08,normal,84
+zone-2,Zone 18,Access,Central,120.86,30.91,warning,73
+zone-3,Zone 24,Access,West,120.22,30.08,normal,86
