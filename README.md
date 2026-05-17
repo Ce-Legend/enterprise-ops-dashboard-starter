@@ -1,10 +1,10 @@
 # Enterprise Ops Dashboard Starter
 
-一个完全脱敏的 To B 运维可视化 starter。这里没有真实业务文件，也没有真实截图，只有手写 mock 数据和一套可以复用的前端组织方式。
+一个 To B 运维可视化 starter，重点放在几条我做企业级 demo 时反复用到的组织方式：场景联动、资产关系、告警解释、健康度规则、数据质量和报表可信度。
 
-我做过几类 To B 演示系统以后，发现最值得留下来的经验其实很朴素：关系图、告警、健康度、数据校验、报表状态要能互相解释。页面看起来再完整，如果点一个场景以后只有局部变化，演示的人很难讲清楚系统到底在判断什么。
+很多 dashboard 第一眼挺完整，演示时很快就散了：图是一套逻辑，告警是一套逻辑，健康分是一套逻辑，导出报表又解释不清来源。这个 repo 想保留的是一条更顺的判断链。
 
-[运行项目](#-运行项目) · [脱敏说明](docs/01-sanitization.md) · [架构笔记](docs/02-demo-architecture.md) · [验收清单](docs/03-validation-loop.md)
+[运行项目](#-运行项目) · [可复用模式](docs/04-reusable-patterns.md) · [架构笔记](docs/02-demo-architecture.md) · [验收清单](docs/03-validation-loop.md)
 
 ![Dashboard screenshot](docs/dashboard-preview.png)
 
@@ -21,98 +21,126 @@ npm run dev
 http://localhost:5173
 ```
 
-生产构建：
+生产构建和数据合同检查：
 
 ```bash
 npm run build
+npm run check:contract
 ```
 
-## 这个 repo 里有什么
+## 可以直接拿走什么
 
 ```text
 src/
-  main.tsx       主界面、场景切换、面板组合
-  mockData.ts    手写 mock 资产、关系、告警、校验数据
-  styles.css     To B dashboard 样式
+  opsPatterns.ts   场景联动、健康度、报表可信度、合同检查
+  mockData.ts      mock 资产、关系、告警、校验数据
+  main.tsx         可运行 dashboard
+  styles.css       To B dashboard 样式
 
 examples/
-  mock-assets.json
-  mock-validation.json
+  ops-contract.json      完整 mock 数据合同
+  mock-assets.json       资产关系样例
+  mock-validation.json   数据校验样例
 
 docs/
-  01-sanitization.md
   02-demo-architecture.md
   03-validation-loop.md
+  04-reusable-patterns.md
 ```
 
-## 我想分享的点
+这里最有用的文件是 [src/opsPatterns.ts](src/opsPatterns.ts)。它把 dashboard 里容易散掉的逻辑抽成了几个小函数：
 
-### 场景要能牵动多个面板
+- `alertsForScenario`：根据场景筛告警。
+- `calculateRuleScores`：把资产、关系、告警、校验行转成健康度规则。
+- `summarizeValidation`：把数据校验行转成报表可信度。
+- `validateOpsContract`：检查 mock 合同有没有断链。
 
-很多 To B demo 会做一个场景下拉框，但场景只影响某一张图。这样演示时会很尴尬：图变了，告警没变，健康度没变，报表状态也没变。
+## 我踩过的几个点
 
-这个 starter 用一个 `scenarioId` 同时驱动：
+### 1. 场景要有协议
 
-- 关系图高亮。
-- 告警列表过滤。
-- 健康度分数变化。
-- 校验和报表提示。
+场景下拉框不能只改标题。一个场景至少要知道自己影响哪些资产，这样关系图、告警列表、健康度、报表状态才能一起变化。
 
-真实项目里不一定要写得复杂，但最好让使用方感到系统有一致的判断链。
+```json
+{
+  "id": "edge-pressure",
+  "name": "Edge Pressure",
+  "description": "Highlights one edge asset, related alerts, and downstream services.",
+  "impactedAssets": ["edge-2", "hub-west", "zone-2"]
+}
+```
 
-### 数据校验页不要藏起来
+这个结构很小，但演示时很管用。讲解的人可以从一个场景一路讲到资产、告警、规则和报表。
 
-运维类系统经常依赖很多源文件或接口。演示时只给一个漂亮驾驶舱，很容易被问到：这些数字从哪里来，缺的数据怎么处理，报表可信度怎么判断。
+### 2. 数据质量应该在页面上露出来
 
-我更喜欢把校验结果放到主流程里，让数据来源、匹配数量、缺失数量直接可见。这样后面导出报表、解释告警、追踪资产关系时，都有依据。
+To B 系统经常会接各种源文件、接口、人工表。只展示最终指标，使用方很容易追问：缺的数据去了哪里，导出的数字靠不靠谱。
 
-### 健康度规则要能被看懂
+我更喜欢把校验结果放在主界面里：
 
-健康分不能只当装饰数字。页面里至少要能看到几个组成项，比如可用性、关系可信度、告警新鲜度、报表就绪度。分数可以是 mock，但规则结构要像真的。
+```json
+{
+  "source": "asset_inventory.csv",
+  "rows": 1280,
+  "matched": 1266,
+  "missing": 14,
+  "note": "14 rows need location mapping"
+}
+```
 
-### 报表状态要跟数据质量相连
+这样报表可信度就有来源，缺口也不会被藏起来。
 
-很多 demo 的报表按钮只是一个结尾动作。更好的做法是让报表状态受数据校验影响：缺口越多，报表信心越低。这样系统就不只是导出文件，还能解释文件为什么可信。
+### 3. 健康分要能解释
 
-## 界面结构
+健康分最好别直接写成一个数字。这个 starter 里用了四个规则：
+
+| 规则 | 解释 |
+|---|---|
+| Asset availability | 关键资产状态 |
+| Relationship confidence | 关系链路是否异常 |
+| Alert freshness | 活跃告警数量和等级 |
+| Report readiness | 数据校验覆盖率 |
+
+规则可以简单，但要让人看得懂。演示时被问为什么是这个分数，页面自己就能回答一半。
+
+### 4. mock 数据也要验
+
+demo 里很常见的问题是：图上的资产叫 A，告警里写的是 A1，报表里又叫另一个名字。页面能跑，但演示时很容易露馅。
+
+这个 repo 留了一个小检查：
+
+```bash
+npm run check:contract
+```
+
+它会检查：
+
+- 关系里的 `source` / `target` 是否存在。
+- 告警引用的资产名是否存在。
+- 校验行里的 `missing` 是否对得上。
+- 场景里的影响资产是否存在。
+
+## 页面结构
 
 ```mermaid
 graph TD
-  A["Scenario"] --> B["Asset graph"]
+  A["Scenario contract"] --> B["Asset graph"]
   A --> C["Alert triage"]
   A --> D["Health rules"]
   E["Source validation"] --> F["Report readiness"]
-  B --> F
-  C --> F
-  D --> F
+  B --> G["Demo explanation"]
+  C --> G
+  D --> G
+  F --> G
 ```
-
-## 脱敏原则
-
-这个仓库只保留通用工程方法：
-
-- mock 资产。
-- mock 关系。
-- mock 告警。
-- mock 校验行。
-- 通用 To B dashboard 布局。
-
-没有放入：
-
-- 真实业务数据。
-- 真实源文件名。
-- 真实接口路径。
-- 真实截图。
-- 真实报表。
-- 任何可反推出项目背景的字段。
 
 ## 可以怎么改
 
-- 把 `mockData.ts` 换成自己的资产和告警结构。
-- 把关系图换成 Cytoscape、D3、ECharts graph 或后端接口。
-- 给校验结果接入真实导入任务。
-- 把健康度规则拆到配置文件。
-- 给报表按钮接入后端导出接口。
+- 换掉 `examples/ops-contract.json`，接自己的资产、关系和告警。
+- 把 `validateOpsContract` 接到 CI，避免 mock 数据断链。
+- 把关系图替换成 Cytoscape、D3 或 ECharts graph。
+- 把健康度规则拆成后端配置。
+- 把 `Report readiness` 接到真实导出接口。
 
 ## License
 

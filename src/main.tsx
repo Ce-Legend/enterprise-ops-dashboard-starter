@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { alerts, assets, links, scenarios, validations, type AlertLevel, type AssetStatus } from "./mockData";
+import { alertsForScenario, calculateRuleScores, impactedAssetSet, overallHealth, summarizeValidation } from "./opsPatterns";
 import "./styles.css";
 
 const statusLabels: Record<AssetStatus, string> = {
@@ -30,15 +31,14 @@ const levelLabels: Record<AlertLevel, string> = {
 function App() {
   const [scenarioId, setScenarioId] = useState("baseline");
   const activeScenario = scenarios.find((item) => item.id === scenarioId) ?? scenarios[0];
-  const impacted = new Set(activeScenario.impactedAssets);
-
-  const healthScore = useMemo(() => {
-    const penalty = activeScenario.id === "baseline" ? 0 : activeScenario.id === "edge-pressure" ? 9 : 5;
-    const base = Math.round(assets.reduce((sum, asset) => sum + asset.score, 0) / assets.length);
-    return Math.max(0, base - penalty);
-  }, [activeScenario.id]);
-
-  const visibleAlerts = scenarioId === "baseline" ? alerts : alerts.filter((alert) => impacted.has(assetIdByName(alert.asset)));
+  const impacted = impactedAssetSet(activeScenario);
+  const ruleScores = useMemo(
+    () => calculateRuleScores(assets, links, alerts, validations, activeScenario),
+    [activeScenario]
+  );
+  const healthScore = overallHealth(ruleScores);
+  const validationSummary = summarizeValidation(validations);
+  const visibleAlerts = alertsForScenario(alerts, assets, activeScenario);
 
   return (
     <main className="app-shell">
@@ -80,7 +80,7 @@ function App() {
           <Metric icon={<Activity size={18} />} label="Health score" value={`${healthScore}`} tone={healthScore < 70 ? "critical" : "normal"} />
           <Metric icon={<GitBranch size={18} />} label="Relationships" value={`${links.length}`} tone="neutral" />
           <Metric icon={<AlertTriangle size={18} />} label="Open alerts" value={`${visibleAlerts.length}`} tone={visibleAlerts.length ? "warning" : "normal"} />
-          <Metric icon={<ShieldCheck size={18} />} label="Validation gaps" value={`${validations.reduce((sum, row) => sum + row.missing, 0)}`} tone="warning" />
+          <Metric icon={<ShieldCheck size={18} />} label="Report readiness" value={`${validationSummary.readiness}%`} tone={validationSummary.readiness < 98 ? "warning" : "normal"} />
         </section>
 
         <section className="two-column">
@@ -128,10 +128,9 @@ function App() {
               </div>
             </div>
             <div className="rule-list">
-              <Rule name="Asset availability" value={92} />
-              <Rule name="Relationship confidence" value={88} />
-              <Rule name="Alert freshness" value={74} />
-              <Rule name="Report readiness" value={82} />
+              {ruleScores.map((rule) => (
+                <Rule key={rule.key} name={rule.label} value={rule.value} why={rule.why} />
+              ))}
             </div>
           </Panel>
         </section>
@@ -171,22 +170,18 @@ function App() {
 
         <section id="reports" className="report-band">
           <div>
-            <h2>What this starter keeps from real To B work</h2>
-            <p>Use one selected scenario to drive graph state, alert rows, health rules, validation messages, and report readiness. That makes a demo easier to explain and much easier to test.</p>
+            <h2>Patterns worth copying</h2>
+            <p>One scenario contract drives graph state, alert rows, health rules, validation messages, and report readiness. That makes a demo easier to explain and easier to test.</p>
           </div>
           <ul>
-            <li><CheckCircle2 size={18} /> Mock data only, no real business files.</li>
-            <li><CheckCircle2 size={18} /> Every panel can be verified from visible state.</li>
-            <li><CheckCircle2 size={18} /> Report confidence depends on source validation.</li>
+            <li><CheckCircle2 size={18} /> Scenario contract: {activeScenario.impactedAssets.length ? `${activeScenario.impactedAssets.length} impacted assets` : "baseline view"}.</li>
+            <li><CheckCircle2 size={18} /> Contract check: run <code>npm run check:contract</code>.</li>
+            <li><CheckCircle2 size={18} /> Report readiness: {validationSummary.label} · {validationSummary.missing} open gaps.</li>
           </ul>
         </section>
       </section>
     </main>
   );
-}
-
-function assetIdByName(name: string) {
-  return assets.find((asset) => asset.name === name)?.id ?? "";
 }
 
 function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone: string }) {
@@ -211,10 +206,10 @@ function Panel({ id, title, action, children }: { id?: string; title: string; ac
   );
 }
 
-function Rule({ name, value }: { name: string; value: number }) {
+function Rule({ name, value, why }: { name: string; value: number; why: string }) {
   return (
     <div className="rule">
-      <span>{name}</span>
+      <span title={why}>{name}</span>
       <div><i style={{ width: `${value}%` }} /></div>
       <strong>{value}</strong>
     </div>
