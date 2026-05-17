@@ -1,0 +1,11 @@
+{
+  "assets": [
+    { "id": "hub-east", "name": "East Hub", "group": "Core", "status": "normal", "score": 92 },
+    { "id": "hub-west", "name": "West Hub", "group": "Core", "status": "warning", "score": 78 },
+    { "id": "edge-2", "name": "Edge B2", "group": "Edge", "status": "critical", "score": 54 }
+  ],
+  "links": [
+    { "source": "hub-west", "target": "edge-2", "load": 91, "status": "critical" },
+    { "source": "hub-east", "target": "hub-west", "load": 57, "status": "normal" }
+  ]
+}

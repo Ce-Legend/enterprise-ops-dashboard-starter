@@ -1,0 +1,16 @@
+[
+  {
+    "source": "asset_inventory.csv",
+    "rows": 1280,
+    "matched": 1266,
+    "missing": 14,
+    "note": "14 rows need location mapping"
+  },
+  {
+    "source": "relationship_map.csv",
+    "rows": 4382,
+    "matched": 4382,
+    "missing": 0,
+    "note": "all endpoints matched"
+  }
+]
