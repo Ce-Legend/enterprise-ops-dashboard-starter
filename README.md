@@ -34,7 +34,7 @@ npm run import:demo
 npm run export:report
 ```
 
-构建和数据合同检查：
+构建，并检查示例数据有没有断链：
 
 ```bash
 npm run build
@@ -53,13 +53,13 @@ examples/excel-sheets/
 scripts/
   import_demo_data.py   CSV 表入 SQLite
   export_report.py      从 SQLite 导出统计和报表 CSV
-  check-contract.mjs    检查前端 mock 合同是否断链
+  check-contract.mjs    检查示例数据里的节点、关系和告警是否能对上
 
 docs/sql/
   schema.sql            数据库表结构
 
 src/
-  opsPatterns.ts        场景、健康度、报表可信度、合同检查
+  opsPatterns.ts        场景、健康度、报表可信度、数据检查
   main.tsx              可运行的数据可视化界面
 ```
 
@@ -67,7 +67,7 @@ src/
 
 ## 我想分享的几个经验
 
-### 1. Excel 导入前先定数据合同
+### 1. Excel 导入前把表和字段说清楚
 
 这类平台最容易卡在字段口径。页面要画关系图，就必须提前明确：
 
@@ -77,7 +77,7 @@ src/
 - 状态字段来自节点、边、告警，还是计算规则。
 - 报表统计以数据库为准，还是以前端筛选结果为准。
 
-这个 repo 里用四张表表达最小合同：
+这个 repo 里用四张示例表把关系讲清楚：
 
 ```text
 assets.csv   节点

@@ -14,7 +14,7 @@ Excel sheets -> import script -> SQLite tables -> UI views -> report export
 |---|---|
 | Excel / CSV sheets | 原始输入，保持接近业务方能理解的表格 |
 | SQLite tables | 稳定 ID、关系边、状态和统计口径 |
-| Contract check | 检查节点、关系、状态引用是否断链 |
+| Source check | 检查节点、关系、状态引用是否断链 |
 | UI views | 展示拓扑、状态、统计和数据质量 |
 | Report export | 从数据库导出可回查的统计结果 |
 

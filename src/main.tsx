@@ -88,7 +88,7 @@ function App() {
         <section id="import" className="import-band">
           <div>
             <h2>Import pipeline</h2>
-            <p>Use CSV exports from Excel as the demo input, normalize them into SQLite tables, then let the UI and report scripts read the same contract.</p>
+            <p>Use CSV exports from Excel as the demo input, normalize them into SQLite tables, then let the UI and report scripts read the same data.</p>
           </div>
           <ol>
             <li><span>1</span><code>assets.csv</code> for nodes</li>
@@ -191,7 +191,7 @@ function App() {
           <ul>
             <li><CheckCircle2 size={18} /> Import demo sheets: <code>npm run import:demo</code>.</li>
             <li><CheckCircle2 size={18} /> Export statistics: <code>npm run export:report</code>.</li>
-            <li><CheckCircle2 size={18} /> Contract check: <code>npm run check:contract</code>.</li>
+            <li><CheckCircle2 size={18} /> Source check: <code>npm run check:contract</code>.</li>
           </ul>
         </section>
       </section>
